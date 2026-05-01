@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ActivityIndicator, FlatList } from 'react-native';
+import { View, Text, Image, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import axios from 'axios';
 import { API_URL } from '@/constants/Config';
 
@@ -16,28 +17,54 @@ interface Event {
 }
 
 export const UpcomingEvents = () => {
+  const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const LIMIT = 6;
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const response = await axios.get(`${API_URL}/api/dbhandler`, {
-          params: { model: 'posts' },
-        });
-        const filteredEvents = response.data.filter(
-          (event: any) => event.for === 'event' && event.type === 'image'
-        );
-        setEvents(filteredEvents);
-      } catch (error) {
-        console.error('Error fetching events:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
+    fetchEvents(1);
   }, []);
+
+  const fetchEvents = async (pageNum: number) => {
+    if (pageNum === 1) setLoading(true);
+    try {
+      const response = await axios.get(`${API_URL}/api/dbhandler`, {
+        params: { 
+          model: 'posts', 
+          for: 'event', 
+          type: 'image',
+          page: pageNum,
+          limit: LIMIT,
+        },
+      });
+      const newEvents = response.data || [];
+      
+      if (pageNum === 1) {
+        setEvents(newEvents);
+      } else {
+        setEvents(prev => [...prev, ...newEvents]);
+      }
+      
+      setHasMore(newEvents.length === LIMIT);
+      setPage(pageNum);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  const onEndReached = () => {
+    if (!loadingMore && hasMore && !loading) {
+      setLoadingMore(true);
+      fetchEvents(page + 1);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -53,6 +80,44 @@ export const UpcomingEvents = () => {
     return 'just now';
   };
 
+  const renderEventCard = ({ item }: { item: Event }) => (
+    <TouchableOpacity
+      onPress={() => router.push(`/detail/${item.id}?type=event` as any)}
+      activeOpacity={0.88}
+      className="mb-8 w-full max-w-sm bg-secondary rounded-xl overflow-hidden shadow-sm"
+    >
+      {/* Header */}
+      <View className="flex-row items-center p-3">
+        <Image
+          source={{ uri: item.user?.avatarUrl || 'https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png' }}
+          className="w-10 h-10 rounded-full"
+        />
+        <View className="ml-3 flex-1">
+          <Text className="font-semibold text-foreground">{item.user?.username}</Text>
+          <Text className="text-xs text-muted-foreground">{formatDate(item.updatedAt)}</Text>
+        </View>
+      </View>
+
+      {/* Image */}
+      <Image source={{ uri: item.url }} className="w-full aspect-square" resizeMode="cover" />
+
+      {/* Body */}
+      <View className="p-4">
+        {item.title && <Text className="font-bold text-lg mb-1">{item.title}</Text>}
+        <Text className="text-foreground/80">{item.post}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <View className="py-6 items-center">
+        <ActivityIndicator size="large" color="#F97316" />
+      </View>
+    );
+  };
+
   if (loading) {
     return <ActivityIndicator size="large" color="#F97316" className="mt-10" />;
   }
@@ -60,34 +125,19 @@ export const UpcomingEvents = () => {
   if (events.length === 0) return null;
 
   return (
-    <View className="flex flex-col items-center mt-8">
+    <View className="flex flex-col items-center mt-8 w-full px-6">
       <Text className="text-3xl font-bold text-center">Upcoming Events</Text>
       <View className="w-20 h-1 bg-accent my-4 rounded-full" />
       
-      {events.map((event) => (
-        <View key={event.id} className="mb-8 w-full max-w-sm bg-secondary rounded-xl overflow-hidden shadow-sm">
-          {/* Header */}
-          <View className="flex-row items-center p-3">
-            <Image
-              source={{ uri: event.user?.avatarUrl || 'https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png' }}
-              className="w-10 h-10 rounded-full"
-            />
-            <View className="ml-3 flex-1">
-              <Text className="font-semibold text-foreground">{event.user?.username}</Text>
-              <Text className="text-xs text-muted-foreground">{formatDate(event.updatedAt)}</Text>
-            </View>
-          </View>
-
-          {/* Image */}
-          <Image source={{ uri: event.url }} className="w-full aspect-square" resizeMode="cover" />
-
-          {/* Body */}
-          <View className="p-4">
-            {event.title && <Text className="font-bold text-lg mb-1">{event.title}</Text>}
-            <Text className="text-foreground/80">{event.post}</Text>
-          </View>
-        </View>
-      ))}
+      <FlatList
+        data={events}
+        renderItem={renderEventCard}
+        keyExtractor={(item) => item.id}
+        scrollEnabled={false}
+        onEndReached={onEndReached}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
+      />
     </View>
   );
 };

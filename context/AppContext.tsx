@@ -1,5 +1,9 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { API_URL } from '@/constants/Config';
+
+axios.defaults.baseURL = API_URL;
 
 interface User {
   id: string;
@@ -10,6 +14,7 @@ interface User {
   avatarUrl: string;
   department: string;
   contact: string;
+  token?: string;
 }
 
 interface AppContextProps {
@@ -18,6 +23,14 @@ interface AppContextProps {
   isLoading: boolean;
   logout: () => Promise<void>;
 }
+
+const setAuthHeader = (token: string | null) => {
+  if (token) {
+    axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+  } else {
+    delete axios.defaults.headers.common.Authorization;
+  }
+};
 
 export const AppContext = createContext<AppContextProps | null>(null);
 
@@ -30,7 +43,9 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       try {
         const storedUser = await SecureStore.getItemAsync('user');
         if (storedUser) {
-          setUser(JSON.parse(storedUser));
+          const parsedUser = JSON.parse(storedUser) as User;
+          setUser(parsedUser);
+          setAuthHeader(parsedUser.token ?? null);
         }
       } catch (e) {
         console.error('Failed to load user', e);
@@ -45,8 +60,10 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setUser(newUser);
     if (newUser) {
       await SecureStore.setItemAsync('user', JSON.stringify(newUser));
+      setAuthHeader(newUser.token ?? null);
     } else {
       await SecureStore.deleteItemAsync('user');
+      setAuthHeader(null);
     }
   };
 

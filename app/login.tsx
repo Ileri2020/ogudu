@@ -26,7 +26,7 @@ export default function LoginScreen() {
       setUser(response.data);
       router.replace('/(tabs)');
     } catch (e: any) {
-      Alert.alert('Login Failed', e.response?.data?.message || 'Invalid credentials');
+      Alert.alert('Login Failed', e.response?.data?.error || 'Invalid credentials');
     } finally {
       setLoading(false);
     }

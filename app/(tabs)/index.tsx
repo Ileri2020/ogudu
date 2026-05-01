@@ -1,10 +1,14 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { UpcomingEvents } from '@/components/UpcomingEvents';
+import { MediaCarousel } from '@/components/MediaCarousel';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function HomeScreen() {
+  const router = useRouter();
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       <ScrollView className="flex-1">
@@ -20,7 +24,10 @@ export default function HomeScreen() {
 
         {/* Action Buttons */}
         <View className="flex-row justify-center gap-4 mt-12 px-6">
-          <TouchableOpacity className="flex-1">
+          <TouchableOpacity 
+            onPress={() => router.push('/category/videos')}
+            className="flex-1"
+          >
             <LinearGradient
               colors={['#F97316', '#FB923C']}
               className="rounded-2xl py-4 items-center shadow-md"
@@ -28,7 +35,10 @@ export default function HomeScreen() {
               <Text className="text-white font-bold text-lg">Praise</Text>
             </LinearGradient>
           </TouchableOpacity>
-          <TouchableOpacity className="flex-1">
+          <TouchableOpacity 
+            onPress={() => router.push('/category/videos')}
+            className="flex-1"
+          >
             <LinearGradient
               colors={['#F97316', '#FB923C']}
               className="rounded-2xl py-4 items-center shadow-md"
@@ -51,6 +61,9 @@ export default function HomeScreen() {
             </View>
           </View>
         </View>
+
+        {/* Featured Media Carousel */}
+        <MediaCarousel />
 
         {/* Upcoming Events */}
         <UpcomingEvents />

@@ -35,6 +35,42 @@ export default function RootLayout() {
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen 
+            name="login" 
+            options={{ 
+              headerShown: false,
+              presentation: 'card',
+              animationEnabled: true,
+            }} 
+          />
+          <Stack.Screen 
+            name="signup" 
+            options={{ 
+              headerShown: false,
+              presentation: 'card',
+              animationEnabled: true,
+            }} 
+          />
+          <Stack.Screen 
+            name="contact" 
+            options={{ 
+              headerShown: true,
+              title: 'Contact Us',
+            }} 
+          />
+          <Stack.Screen 
+            name="category/[slug]" 
+            options={{ 
+              headerShown: true,
+              title: 'Category',
+            }} 
+          />
+          <Stack.Screen 
+            name="detail/[id]" 
+            options={{ 
+              headerShown: false,
+            }} 
+          />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />

@@ -32,7 +32,7 @@ export default function SignupScreen() {
       setUser(response.data);
       router.replace('/(tabs)');
     } catch (e: any) {
-      Alert.alert('Signup Failed', e.response?.data?.message || 'Something went wrong');
+      Alert.alert('Signup Failed', e.response?.data?.error || 'Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -118,7 +118,7 @@ export default function SignupScreen() {
 
         <View className="flex-row justify-center mb-10">
           <Text className="text-muted-foreground">Already have an account? </Text>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.replace('/login')}>
             <Text className="text-accent font-bold">Login</Text>
           </TouchableOpacity>
         </View>

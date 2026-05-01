@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, Alert, Share, Dimensions } from 'react-native';
+import { View, Text, Image, TouchableOpacity, Alert, Share, Dimensions, Modal, TextInput, FlatList, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Video, ResizeMode } from 'expo-av';
 import { WebView } from 'react-native-webview';
 import axios from 'axios';
@@ -25,10 +26,28 @@ interface PostData {
 }
 
 export const Post = ({ post, onUpdate }: { post: PostData, onUpdate?: () => void }) => {
+  const router = useRouter();
   const { user } = useAppContext();
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [likeId, setLikeId] = useState<string | null>(null);
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [submittingComment, setSubmittingComment] = useState(false);
+
+  const openDetails = () => {
+    if (post.for === 'preaching' || post.for === 'service') {
+      router.push(`/preach/${post.id}` as any);
+    } else if (post.for === 'worshipvideo' || post.for === 'praisevideo') {
+      router.push(`/videos/${post.id}` as any);
+    } else if (post.for === 'project') {
+      router.push(`/projects/${post.id}` as any);
+    } else {
+      router.push(`/detail/${post.id}?type=${encodeURIComponent(post.for)}` as any);
+    }
+  };
 
   useEffect(() => {
     fetchLikes();
@@ -36,14 +55,18 @@ export const Post = ({ post, onUpdate }: { post: PostData, onUpdate?: () => void
 
   const fetchLikes = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/dbhandler?model=likes&id=${post.id}`);
+      const res = await axios.get(`${API_URL}/api/dbhandler`, {
+        params: { model: 'likes', contentId: post.id },
+      });
       setLikeCount(res.data.length);
       const userLike = res.data.find((l: { userId: string, id: string }) => l.userId === user?.id);
       if (userLike) {
         setLiked(true);
         setLikeId(userLike.id);
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error('Failed to load likes', e);
+    }
   };
 
   const handleLike = async () => {
@@ -67,6 +90,50 @@ export const Post = ({ post, onUpdate }: { post: PostData, onUpdate?: () => void
         setLikeCount(c => c - 1);
       }
     } catch (e) {}
+  };
+
+  const fetchComments = async () => {
+    setLoadingComments(true);
+    try {
+      const res = await axios.get(`${API_URL}/api/dbhandler`, {
+        params: { model: 'comments', id: post.id },
+      });
+      const filtered = res.data.filter((c: any) => c.contentId === post.id);
+      // Sort newest first
+      setComments(filtered.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+    } catch (e) {
+      console.error('Failed to load comments', e);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  const handleOpenComments = () => {
+    setShowComments(true);
+    fetchComments();
+  };
+
+  const submitComment = async () => {
+    if (!user) {
+      Alert.alert('Login Required', 'Please sign in to comment.');
+      return;
+    }
+    if (!newComment.trim()) return;
+    setSubmittingComment(true);
+    try {
+      await axios.post(`${API_URL}/api/dbhandler?model=comments`, {
+        userId: user.id,
+        username: user.username,
+        contentId: post.id,
+        comment: newComment,
+      });
+      setNewComment("");
+      fetchComments();
+    } catch (e) {
+      Alert.alert('Error', 'Failed to post comment');
+    } finally {
+      setSubmittingComment(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -165,12 +232,13 @@ export const Post = ({ post, onUpdate }: { post: PostData, onUpdate?: () => void
 
   return (
     <View className="mb-8 w-full max-w-sm bg-secondary rounded-2xl overflow-hidden shadow-sm self-center">
-      {/* Header */}
-      <View className="flex-row items-center p-3">
-        <Image
-          source={{ uri: post.user?.avatarUrl || 'https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png' }}
-          className="w-10 h-10 rounded-full"
-        />
+      <TouchableOpacity onPress={openDetails} activeOpacity={0.9}>
+        {/* Header */}
+        <View className="flex-row items-center p-3">
+          <Image
+            source={{ uri: post.user?.avatarUrl || 'https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png' }}
+            className="w-10 h-10 rounded-full"
+          />
         <View className="ml-3 flex-1">
           <Text className="font-semibold text-foreground">{post.user?.username}</Text>
           <Text className="text-xs text-muted-foreground">{new Date(post.updatedAt).toLocaleDateString()}</Text>
@@ -178,9 +246,9 @@ export const Post = ({ post, onUpdate }: { post: PostData, onUpdate?: () => void
         <TouchableOpacity onPress={handleShare}>
           <MaterialIcons name="share" size={20} color="#6B7280" />
         </TouchableOpacity>
-      </View>
+        </View>
 
-      {/* Admin Actions */}
+        {/* Admin Actions */}
       {user?.role === 'admin' && (
         <View className="flex-row gap-2 px-3 pb-3">
           {post.isVerified === false && (
@@ -227,12 +295,84 @@ export const Post = ({ post, onUpdate }: { post: PostData, onUpdate?: () => void
             <Text className={`ml-1 font-semibold ${liked ? 'text-accent' : 'text-muted-foreground'}`}>{likeCount}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="flex-row items-center">
+          <TouchableOpacity className="flex-row items-center" onPress={handleOpenComments}>
             <MaterialIcons name="chat-bubble-outline" size={20} color="#6B7280" />
             <Text className="ml-1 text-muted-foreground font-semibold">Comment</Text>
           </TouchableOpacity>
         </View>
       </View>
+      </TouchableOpacity>
+
+      {/* Comments Modal / Drawer */}
+      <Modal
+        visible={showComments}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowComments(false)}
+      >
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1 justify-end bg-black/50"
+        >
+          <View className="bg-background w-full h-[70%] rounded-t-3xl shadow-lg flex flex-col">
+            <View className="flex-row justify-between items-center px-6 py-4 border-b border-border/50">
+              <Text className="text-xl font-bold text-foreground">Comments</Text>
+              <TouchableOpacity onPress={() => setShowComments(false)} className="bg-secondary p-2 rounded-full">
+                <MaterialIcons name="close" size={20} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+
+            <View className="flex-1 px-6">
+              {loadingComments ? (
+                <View className="mt-10 items-center">
+                  <ActivityIndicator size="large" color="#F97316" />
+                </View>
+              ) : comments.length === 0 ? (
+                <View className="mt-10 items-center">
+                  <Text className="text-muted-foreground text-center">No comments yet. Be the first to comment!</Text>
+                </View>
+              ) : (
+                <FlatList
+                  data={comments}
+                  keyExtractor={(c) => c.id || Math.random().toString()}
+                  contentContainerStyle={{ paddingVertical: 16 }}
+                  renderItem={({ item }) => (
+                    <View className="bg-secondary p-3 rounded-xl mb-3 shadow-sm">
+                      <View className="flex-row justify-between items-center mb-1">
+                        <Text className="font-bold text-foreground">@{item.username}</Text>
+                        <Text className="text-xs text-muted-foreground">{new Date(item.createdAt || item.updatedAt).toLocaleDateString()}</Text>
+                      </View>
+                      <Text className="text-foreground/80 leading-5">{item.comment}</Text>
+                    </View>
+                  )}
+                />
+              )}
+            </View>
+
+            <View className="p-4 border-t border-border/50 bg-background flex-row items-center">
+              <TextInput
+                value={newComment}
+                onChangeText={setNewComment}
+                placeholder="Write a comment..."
+                placeholderTextColor="#6B7280"
+                className="flex-1 bg-secondary rounded-full px-4 py-3 text-foreground"
+                multiline
+              />
+              <TouchableOpacity 
+                onPress={submitComment}
+                disabled={submittingComment || !newComment.trim()}
+                className={`ml-3 p-3 rounded-full ${newComment.trim() ? 'bg-accent' : 'bg-secondary'}`}
+              >
+                {submittingComment ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <MaterialIcons name="send" size={20} color={newComment.trim() ? "#fff" : "#6B7280"} />
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 };
