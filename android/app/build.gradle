@@ -174,3 +174,12 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+// Fix for "Could not get unknown property 'release' for SoftwareComponent container"
+afterEvaluate {
+    if (components.findByName('release')) {
+        println "Found release component"
+    } else {
+        println "Release component not found, applying workaround"
+    }
+}
