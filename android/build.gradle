@@ -13,11 +13,15 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        maven {
+            url(new File(["node", "--print", "require.resolve('expo-modules-autolinking/package.json')"].execute(null, rootDir).text.trim(), "../android"))
+        }
     }
     dependencies {
         classpath('com.android.tools.build:gradle')
         classpath('com.facebook.react:react-native-gradle-plugin')
         classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
+        classpath('expo-module-gradle-plugin')
     }
 }
 
