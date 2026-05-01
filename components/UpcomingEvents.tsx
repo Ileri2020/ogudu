@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
+const { Image } = require('react-native') as { Image: React.ComponentType<any> };
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import { API_URL } from '@/constants/Config';

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
+const { StyleSheet } = require('react-native') as { StyleSheet: { create: <T>(s: T) => T } };
 import Animated, {
   useSharedValue,
   useAnimatedStyle,

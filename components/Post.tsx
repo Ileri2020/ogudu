@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, Alert, Share, Dimensions, Modal, TextInput, FlatList, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Share, Modal, TextInput, FlatList, ActivityIndicator, KeyboardAvoidingView } from 'react-native';
+// RN 0.76 package-exports workaround: import problematic members via require
+const { Image, Alert, Dimensions, Platform } = require('react-native') as {
+  Image: React.ComponentType<any>;
+  Alert: { alert: (title: string, msg?: string, buttons?: any[], opts?: any) => void };
+  Dimensions: { get: (dim: 'window' | 'screen') => { width: number; height: number; scale: number; fontScale: number } };
+  Platform: { OS: string; select: <T>(s: Partial<Record<string, T>>) => T };
+};
 import { useRouter } from 'expo-router';
 import { Video, ResizeMode } from 'expo-av';
 import { WebView } from 'react-native-webview';

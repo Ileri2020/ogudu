@@ -1,5 +1,5 @@
 import { Link, Stack } from 'expo-router';
-import { StyleSheet } from 'react-native';
+const { StyleSheet } = require('react-native') as { StyleSheet: { create: <T>(s: T) => T; hairlineWidth: number } };
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';

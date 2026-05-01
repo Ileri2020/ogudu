@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+const { Image, Platform } = require('react-native') as { Image: React.ComponentType<any>; Platform: { OS: string; select: <T>(s: any) => T } };
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { UpcomingEvents } from '@/components/UpcomingEvents';

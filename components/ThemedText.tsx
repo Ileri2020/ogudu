@@ -1,4 +1,5 @@
-import { Text, type TextProps, StyleSheet } from 'react-native';
+import { Text, type TextProps } from 'react-native';
+const { StyleSheet } = require('react-native') as { StyleSheet: { create: <T>(s: T) => T } };
 
 import { useThemeColor } from '@/hooks/useThemeColor';
 

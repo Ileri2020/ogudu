@@ -40,7 +40,7 @@ export default function RootLayout() {
             options={{ 
               headerShown: false,
               presentation: 'card',
-              animationEnabled: true,
+              animation: 'slide_from_right',
             }} 
           />
           <Stack.Screen 
@@ -48,7 +48,7 @@ export default function RootLayout() {
             options={{ 
               headerShown: false,
               presentation: 'card',
-              animationEnabled: true,
+              animation: 'slide_from_right',
             }} 
           />
           <Stack.Screen 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+const { Image } = require('react-native') as { Image: React.ComponentType<any> };
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProfileCard } from '@/components/ProfileCard';
 import axios from 'axios';

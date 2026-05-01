@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, Modal, TouchableOpacity, TextInput, ActivityIndicator, Image, KeyboardAvoidingView, Platform, Alert, ScrollView } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, TextInput, ActivityIndicator, ScrollView, KeyboardAvoidingView } from 'react-native';
+const { Image, Platform, Alert } = require('react-native') as {
+  Image: React.ComponentType<any>;
+  Platform: { OS: string; select: <T>(s: Partial<Record<string, T>>) => T };
+  Alert: { alert: (title: string, msg?: string, buttons?: any[], opts?: any) => void };
+};
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import { API_URL } from '@/constants/Config';

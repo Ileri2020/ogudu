@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+const { Image, Alert } = require('react-native') as { Image: React.ComponentType<any>; Alert: { alert: (t: string, m?: string, b?: any[]) => void } };
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppContext } from '@/context/AppContext';
 import { useRouter } from 'expo-router';

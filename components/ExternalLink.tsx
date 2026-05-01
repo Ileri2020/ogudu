@@ -1,7 +1,7 @@
 import { Link } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
 import { type ComponentProps } from 'react';
-import { Platform } from 'react-native';
+const { Platform } = require('react-native') as { Platform: { OS: string; select: <T>(s: any) => T } };
 
 type Props = Omit<ComponentProps<typeof Link>, 'href'> & { href: any };
 
