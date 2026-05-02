@@ -84,9 +84,9 @@ export default function LoginScreen() {
         </View>
 
         <View className="flex-row items-center my-8">
-          <View className="flex-1 h-[1px] bg-border/50" />
+          <View className="flex-1 bg-border/50" />
           <Text className="mx-4 text-muted-foreground">OR</Text>
-          <View className="flex-1 h-[1px] bg-border/50" />
+          <View className="flex-1 bg-border/50" />
         </View>
 
         <View className="flex-row gap-4">

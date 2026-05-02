@@ -22,7 +22,7 @@ export const ProfileCard = ({ name, title, image }: ProfileCardProps) => {
       </View>
       <View className="mt-16 items-center px-2">
         <Text className="font-bold text-center text-accent text-base" numberOfLines={2}>{name}</Text>
-        <Text className="text-[10px] text-center text-muted-foreground uppercase tracking-widest mt-1">{title}</Text>
+        <Text className="text-sm text-center text-muted-foreground uppercase tracking-widest mt-1">{title}</Text>
       </View>
     </View>
   );

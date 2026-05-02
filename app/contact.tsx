@@ -97,7 +97,7 @@ export default function ContactScreen() {
                 <MaterialIcons name="location-on" size={24} color="#F97316" />
              </View>
              <View className="ml-4 flex-1">
-                <Text className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest">Address</Text>
+                <Text className="text-muted-foreground text-sm font-bold uppercase tracking-widest">Address</Text>
                 <Text className="text-foreground font-semibold">Ogudu Expressway, Lagos, Nigeria</Text>
              </View>
           </View>
@@ -107,7 +107,7 @@ export default function ContactScreen() {
                 <MaterialIcons name="phone" size={24} color="#F97316" />
              </View>
              <View className="ml-4 flex-1">
-                <Text className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest">Phone</Text>
+                <Text className="text-muted-foreground text-sm font-bold uppercase tracking-widest">Phone</Text>
                 <Text className="text-foreground font-semibold">+234 123 456 7890</Text>
              </View>
           </View>
@@ -117,7 +117,7 @@ export default function ContactScreen() {
                 <MaterialIcons name="email" size={24} color="#F97316" />
              </View>
              <View className="ml-4 flex-1">
-                <Text className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest">Email</Text>
+                <Text className="text-muted-foreground text-sm font-bold uppercase tracking-widest">Email</Text>
                 <Text className="text-foreground font-semibold">contact@cccogudu.org</Text>
              </View>
           </View>

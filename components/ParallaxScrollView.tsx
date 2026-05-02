@@ -1,5 +1,6 @@
 import type { PropsWithChildren, ReactElement } from 'react';
-const { StyleSheet } = require('react-native') as { StyleSheet: { create: <T>(s: T) => T } };
+import type { StyleSheet as StyleSheetType } from 'react-native';
+const { StyleSheet } = require('react-native') as { StyleSheet: typeof StyleSheetType };
 import Animated, {
   interpolate,
   useAnimatedRef,

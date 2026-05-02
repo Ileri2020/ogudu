@@ -1,6 +1,7 @@
 import { PropsWithChildren, useState } from 'react';
 import { TouchableOpacity } from 'react-native';
-const { StyleSheet } = require('react-native') as { StyleSheet: { create: <T>(s: T) => T } };
+import type { StyleSheet as StyleSheetType } from 'react-native';
+const { StyleSheet } = require('react-native') as { StyleSheet: typeof StyleSheetType };
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';

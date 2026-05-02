@@ -15,7 +15,7 @@ declare module 'react-native' {
     resizeMode?: 'cover' | 'contain' | 'stretch' | 'repeat' | 'center';
     width?: number | string;
     height?: number | string;
-    borderRadius?: number;
+    borderRadius?: any;
     [key: string]: any;
   }
 
