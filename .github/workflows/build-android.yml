@@ -31,9 +31,14 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Prebuild Expo
+        env:
+          NODE_ENV: production
+          EXPO_NO_TELEMETRY: 1
         run: npx expo prebuild --platform android --no-install
 
       - name: Build Android APK
+        env:
+          NODE_ENV: production
         run: |
           cd android
           chmod +x gradlew
