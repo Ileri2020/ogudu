@@ -7,7 +7,7 @@ import {
 } from '@/components/shared';
 import { Screen, Section } from '@/components/layout';
 import { Hero, QuickActions } from '@/components/home';
-import testimonialsData from '@/../next-ogudu/data/testimonial';
+import testimonialsData from '@/data/testimonial';
 
 const HERO_ITEMS = [
   { id: '1', url: 'https://cccogudu.vercel.app/crown.webp', title: 'O Good Forever', subtitle: 'Experience the Divine' },
