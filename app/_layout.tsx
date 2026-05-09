@@ -6,13 +6,17 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { AppContextProvider } from '../context/AppContext';
+
+const queryClient = new QueryClient();
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
-
-import { AppContextProvider } from '../context/AppContext';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -31,50 +35,56 @@ export default function RootLayout() {
   }
 
   return (
-    <AppContextProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen 
-            name="login" 
-            options={{ 
-              headerShown: false,
-              presentation: 'card',
-              animation: 'slide_from_right',
-            }} 
-          />
-          <Stack.Screen 
-            name="signup" 
-            options={{ 
-              headerShown: false,
-              presentation: 'card',
-              animation: 'slide_from_right',
-            }} 
-          />
-          <Stack.Screen 
-            name="contact" 
-            options={{ 
-              headerShown: true,
-              title: 'Contact Us',
-            }} 
-          />
-          <Stack.Screen 
-            name="category/[slug]" 
-            options={{ 
-              headerShown: true,
-              title: 'Category',
-            }} 
-          />
-          <Stack.Screen 
-            name="detail/[id]" 
-            options={{ 
-              headerShown: false,
-            }} 
-          />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </AppContextProvider>
+    <QueryClientProvider client={queryClient}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <BottomSheetModalProvider>
+          <AppContextProvider>
+            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen 
+                  name="login" 
+                  options={{ 
+                    headerShown: false,
+                    presentation: 'card',
+                    animation: 'slide_from_right',
+                  }} 
+                />
+                <Stack.Screen 
+                  name="signup" 
+                  options={{ 
+                    headerShown: false,
+                    presentation: 'card',
+                    animation: 'slide_from_right',
+                  }} 
+                />
+                <Stack.Screen 
+                  name="contact" 
+                  options={{ 
+                    headerShown: true,
+                    title: 'Contact Us',
+                  }} 
+                />
+                <Stack.Screen 
+                  name="category/[slug]" 
+                  options={{ 
+                    headerShown: true,
+                    title: 'Category',
+                  }} 
+                />
+                <Stack.Screen 
+                  name="detail/[id]" 
+                  options={{ 
+                    headerShown: false,
+                  }} 
+                />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+              <StatusBar style="auto" />
+            </ThemeProvider>
+          </AppContextProvider>
+        </BottomSheetModalProvider>
+      </GestureHandlerRootView>
+    </QueryClientProvider>
   );
 }

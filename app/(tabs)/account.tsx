@@ -1,36 +1,33 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-const { Image, Alert } = require('react-native') as { Image: React.ComponentType<any>; Alert: { alert: (t: string, m?: string, b?: any[]) => void } };
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useRef } from 'react';
+import { View, Text, Alert } from 'react-native';
+import { Screen, Section, PageHeader } from '@/components/layout';
+import { ProfileHeader, InfoItem } from '@/components/account';
+import { Button } from '@/components/ui';
 import { useAppContext } from '@/context/AppContext';
 import { useRouter } from 'expo-router';
-import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { User, Mail, Phone, Users, Shield, LogOut, Settings, HelpCircle } from 'lucide-react-native';
+import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import { MediaUploader } from '@/components/shared';
 
 export default function AccountScreen() {
   const { user, logout } = useAppContext();
   const router = useRouter();
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   if (!user) {
     return (
-      <SafeAreaView className="flex-1 bg-background justify-center items-center px-6">
-        <Ionicons name="person-circle-outline" size={100} color="#E5E7EB" />
-        <Text className="text-2xl font-bold text-foreground mt-4">Not Logged In</Text>
-        <Text className="text-muted-foreground text-center mt-2 mb-10">
-          Sign in to access your profile and join the community.
+      <Screen safe={true} scrollable={false} className="justify-center items-center px-10">
+        <View className="w-24 h-24 bg-gray-100 rounded-full items-center justify-center mb-6">
+          <User size={48} color="#94a3b8" />
+        </View>
+        <Text className="text-3xl font-black text-gray-900 text-center tracking-tighter">Join the Community</Text>
+        <Text className="text-base text-gray-500 text-center mt-3 mb-10 leading-relaxed">
+          Sign in to access your profile, track your contributions, and stay connected with CCC Ogudu.
         </Text>
-        <TouchableOpacity 
-          className="w-full"
-          onPress={() => router.push('/login')}
-        >
-          <LinearGradient
-            colors={['#F97316', '#FB923C']}
-            className="py-4 rounded-2xl items-center"
-          >
-            <Text className="text-white font-bold text-lg">Sign In / Sign Up</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </SafeAreaView>
+        <Button size="lg" className="w-full h-16 rounded-3xl" onPress={() => router.push('/login')}>
+          Sign In / Sign Up
+        </Button>
+      </Screen>
     );
   }
 
@@ -41,85 +38,58 @@ export default function AccountScreen() {
     ]);
   };
 
-  const InfoRow = ({ icon, label, value, color = '#6B7280' }: { icon: string, label: string, value: string, color?: string }) => (
-    <View className="flex-row items-center p-4 bg-secondary/50 rounded-2xl mb-4 border border-border/30">
-      <View className="w-10 items-center">
-         <MaterialIcons name={icon as any} size={24} color={color} />
-      </View>
-      <View className="ml-3 flex-1">
-        <Text className="text-xs text-muted-foreground uppercase font-bold tracking-widest">{label}</Text>
-        <Text className="text-base text-foreground font-semibold">{value}</Text>
-      </View>
-    </View>
-  );
-
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
-      <ScrollView className="flex-1 px-6">
-        {/* Profile Header */}
-        <View className="items-center mt-8 mb-10">
-          <View className="relative">
-            <Image
-              source={{ uri: user.avatarUrl || 'https://res.cloudinary.com/dc5khnuiu/image/upload/v1752627019/uxokaq0djttd7gsslwj9.png' }}
-              className="w-32 h-32 rounded-full border-4 border-accent shadow-lg"
-            />
-            <TouchableOpacity className="absolute bottom-0 right-0 bg-accent p-2 rounded-full border-2 border-white">
-              <MaterialIcons name="camera-alt" size={20} color="white" />
-            </TouchableOpacity>
+    <Screen safe={true}>
+      <PageHeader title="My" accentTitle="Account" />
+
+      <ProfileHeader 
+        user={user} 
+        onEditAvatar={() => bottomSheetRef.current?.present()} 
+      />
+
+      <Section title="Personal Information" className="pt-0">
+        <InfoItem icon={<User size={20} color="#f59e0b" />} label="Username" value={user.username} />
+        <InfoItem icon={<Mail size={20} color="#f59e0b" />} label="Email" value={user.email} />
+        <InfoItem icon={<Phone size={20} color="#f59e0b" />} label="Contact" value={user.contact || 'Not set'} />
+        <InfoItem icon={<Users size={20} color="#f59e0b" />} label="Department" value={user.department || 'General Member'} />
+      </Section>
+
+      <Section title="Settings & Support">
+        <Button variant="ghost" className="justify-start h-16 px-6 mb-2 rounded-3xl bg-gray-50" onPress={() => router.push('/contact')}>
+          <View className="flex-row items-center flex-1">
+            <HelpCircle size={20} color="#64748b" />
+            <Text className="ml-4 font-bold text-gray-700">Support & Help</Text>
           </View>
-          <Text className="text-2xl font-bold text-foreground mt-4">{user.name || user.username}</Text>
-          <View className="bg-accent/10 px-4 py-1 rounded-full mt-1">
-            <Text className="text-accent text-xs font-bold uppercase">{user.role}</Text>
-          </View>
-        </View>
-
-        {/* Info Sections */}
-        <View className="mb-10">
-          <InfoRow icon="person" label="Username" value={user.username} color="#F97316" />
-          <InfoRow icon="email" label="Email Address" value={user.email} color="#F97316" />
-          <InfoRow icon="phone" label="Contact" value={user.contact || 'Not set'} color="#F97316" />
-          <InfoRow icon="groups" label="Department" value={user.department || 'General'} color="#F97316" />
-        </View>
-
-        {/* App Settings/Actions */}
-        <View className="mb-4">
-          <TouchableOpacity 
-            className="flex-row items-center p-4 bg-secondary/50 rounded-2xl mb-4 border border-border/30"
-            onPress={() => router.push('/contact')}
-          >
-            <MaterialIcons name="contact-support" size={24} color="#F97316" />
-            <View className="ml-3 flex-1">
-              <Text className="text-base text-foreground font-semibold">Contact & Support</Text>
-              <Text className="text-xs text-muted-foreground">Need help? Get in touch with us.</Text>
-            </View>
-            <MaterialIcons name="chevron-right" size={24} color="#D1D5DB" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Admin Controls Shortcut */}
+        </Button>
+        
         {user.role === 'admin' && (
-          <TouchableOpacity 
-            className="flex-row items-center p-4 bg-accent/10 rounded-2xl mb-4 border border-accent/30"
-            onPress={() => Alert.alert('Admin', 'Admin dashboard coming soon!')}
-          >
-            <FontAwesome5 name="user-shield" size={20} color="#F97316" />
-            <Text className="ml-3 text-accent font-bold">Admin Dashboard</Text>
-          </TouchableOpacity>
+          <Button variant="ghost" className="justify-start h-16 px-6 mb-2 rounded-3xl bg-accent/5" onPress={() => router.push('/admin' as any)}>
+            <View className="flex-row items-center flex-1">
+              <Shield size={20} color="#f59e0b" />
+              <Text className="ml-4 font-bold text-accent">Admin Dashboard</Text>
+            </View>
+          </Button>
         )}
 
-        {/* Action Buttons */}
-        <View className="flex-row gap-4 mb-10">
-          <TouchableOpacity className="flex-1 bg-secondary py-4 rounded-2xl items-center border border-border/50">
-            <Text className="text-foreground font-bold">Edit Profile</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            className="flex-1 bg-destructive/10 py-4 rounded-2xl items-center border border-destructive/30"
-            onPress={handleLogout}
-          >
-            <Text className="text-destructive font-bold">Logout</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        <Button variant="ghost" className="justify-start h-16 px-6 rounded-3xl bg-red-50" onPress={handleLogout}>
+          <View className="flex-row items-center flex-1">
+            <LogOut size={20} color="#ef4444" />
+            <Text className="ml-4 font-bold text-red-500">Log Out</Text>
+          </View>
+        </Button>
+      </Section>
+
+      <View className="h-20" />
+
+      <BottomSheetModal
+        ref={bottomSheetRef}
+        snapPoints={['80%']}
+        backdropComponent={(props) => <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />}
+      >
+        <BottomSheetView className="flex-1">
+          <MediaUploader isProfileImage={true} onSuccess={() => bottomSheetRef.current?.dismiss()} />
+        </BottomSheetView>
+      </BottomSheetModal>
+    </Screen>
   );
 }
