@@ -1,32 +1,49 @@
-import React, { useRef } from 'react';
-import { View, Text, Alert } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, Alert, TextInput, TouchableOpacity, ScrollView, Modal, ActivityIndicator } from 'react-native';
 import { Screen, Section, PageHeader } from '@/components/layout';
 import { ProfileHeader, InfoItem } from '@/components/account';
 import { Button } from '@/components/ui';
 import { useAppContext } from '@/context/AppContext';
 import { useRouter } from 'expo-router';
-import { User, Mail, Phone, Users, Shield, LogOut, Settings, HelpCircle } from 'lucide-react-native';
+import { User, Mail, Phone, Users, Shield, LogOut, Settings, HelpCircle, Edit3, X, Check } from 'lucide-react-native';
 import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import { MediaUploader } from '@/components/shared';
+import axios from 'axios';
+import { API_URL } from '@/constants/Config';
 
 export default function AccountScreen() {
-  const { user, logout } = useAppContext();
+  const { user, logout, setUser } = useAppContext();
   const router = useRouter();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editData, setEditData] = useState({
+    name: '',
+    contact: '',
+    department: '',
+  });
 
   if (!user) {
     return (
-      <Screen safe={true} scrollable={false} className="justify-center items-center px-10">
-        <View className="w-24 h-24 bg-gray-100 rounded-full items-center justify-center mb-6">
-          <User size={48} color="#94a3b8" />
+      <Screen safe={true} scrollable={false} className="justify-center items-center px-10 bg-white">
+        <View className="w-32 h-32 bg-gray-50 rounded-full items-center justify-center mb-8 border border-gray-100">
+          <User size={64} color="#f59e0b" />
         </View>
-        <Text className="text-3xl font-black text-gray-900 text-center tracking-tighter">Join the Community</Text>
-        <Text className="text-base text-gray-500 text-center mt-3 mb-10 leading-relaxed">
-          Sign in to access your profile, track your contributions, and stay connected with CCC Ogudu.
+        <Text className="text-4xl font-black text-gray-900 text-center tracking-tighter">Stay Connected</Text>
+        <Text className="text-lg text-gray-500 text-center mt-4 mb-12 leading-relaxed font-medium">
+          Sign in to access your profile, contributions, and stay updated with the CCC Ogudu community.
         </Text>
-        <Button size="lg" className="w-full h-16 rounded-3xl" onPress={() => router.push('/login')}>
-          Sign In / Sign Up
-        </Button>
+        <View className="w-full gap-4">
+          <Button size="lg" className="h-16 rounded-3xl shadow-xl shadow-orange-500/20" onPress={() => router.push('/login')}>
+            Sign In
+          </Button>
+          <TouchableOpacity 
+            onPress={() => router.push('/signup')}
+            className="h-16 rounded-3xl border-2 border-gray-100 items-center justify-center"
+          >
+            <Text className="text-gray-900 font-black text-lg">Create Account</Text>
+          </TouchableOpacity>
+        </View>
       </Screen>
     );
   }
@@ -38,8 +55,32 @@ export default function AccountScreen() {
     ]);
   };
 
+  const startEditing = () => {
+    setEditData({
+      name: user.name || '',
+      contact: user.contact || '',
+      department: user.department || '',
+    });
+    setIsEditing(true);
+  };
+
+  const handleUpdateProfile = async () => {
+    setEditLoading(true);
+    try {
+      const res = await axios.put(`${API_URL}/api/dbhandler?model=users&id=${user.id}`, editData);
+      setUser({ ...user, ...res.data });
+      setIsEditing(false);
+      Alert.alert('Success', 'Profile updated successfully');
+    } catch (e: any) {
+      console.error(e);
+      Alert.alert('Update Failed', 'Failed to update profile information');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   return (
-    <Screen safe={true}>
+    <Screen safe={true} className="bg-white">
       <PageHeader title="My" accentTitle="Account" />
 
       <ProfileHeader 
@@ -47,15 +88,23 @@ export default function AccountScreen() {
         onEditAvatar={() => bottomSheetRef.current?.present()} 
       />
 
-      <Section title="Personal Information" className="pt-0">
-        <InfoItem icon={<User size={20} color="#f59e0b" />} label="Username" value={user.username} />
+      <Section 
+        title="Personal Information" 
+        className="pt-0"
+        rightElement={
+          <TouchableOpacity onPress={startEditing} className="bg-gray-50 p-2 rounded-full">
+            <Edit3 size={18} color="#f59e0b" />
+          </TouchableOpacity>
+        }
+      >
+        <InfoItem icon={<User size={20} color="#f59e0b" />} label="Name" value={user.name || 'Not set'} />
         <InfoItem icon={<Mail size={20} color="#f59e0b" />} label="Email" value={user.email} />
         <InfoItem icon={<Phone size={20} color="#f59e0b" />} label="Contact" value={user.contact || 'Not set'} />
         <InfoItem icon={<Users size={20} color="#f59e0b" />} label="Department" value={user.department || 'General Member'} />
       </Section>
 
       <Section title="Settings & Support">
-        <Button variant="ghost" className="justify-start h-16 px-6 mb-2 rounded-3xl bg-gray-50" onPress={() => router.push('/contact')}>
+        <Button variant="ghost" className="justify-start h-16 px-6 mb-3 rounded-3xl bg-gray-50 border border-gray-100" onPress={() => router.push('/contact')}>
           <View className="flex-row items-center flex-1">
             <HelpCircle size={20} color="#64748b" />
             <Text className="ml-4 font-bold text-gray-700">Support & Help</Text>
@@ -63,15 +112,15 @@ export default function AccountScreen() {
         </Button>
         
         {user.role === 'admin' && (
-          <Button variant="ghost" className="justify-start h-16 px-6 mb-2 rounded-3xl bg-accent/5" onPress={() => router.push('/admin' as any)}>
+          <Button variant="ghost" className="justify-start h-16 px-6 mb-3 rounded-3xl bg-orange-50 border border-orange-100" onPress={() => router.push('/admin' as any)}>
             <View className="flex-row items-center flex-1">
               <Shield size={20} color="#f59e0b" />
-              <Text className="ml-4 font-bold text-accent">Admin Dashboard</Text>
+              <Text className="ml-4 font-bold text-orange-600">Admin Dashboard</Text>
             </View>
           </Button>
         )}
 
-        <Button variant="ghost" className="justify-start h-16 px-6 rounded-3xl bg-red-50" onPress={handleLogout}>
+        <Button variant="ghost" className="justify-start h-16 px-6 rounded-3xl bg-red-50 border border-red-100" onPress={handleLogout}>
           <View className="flex-row items-center flex-1">
             <LogOut size={20} color="#ef4444" />
             <Text className="ml-4 font-bold text-red-500">Log Out</Text>
@@ -80,6 +129,65 @@ export default function AccountScreen() {
       </Section>
 
       <View className="h-20" />
+
+      {/* Edit Profile Modal */}
+      <Modal visible={isEditing} animationType="slide" transparent={true}>
+        <View className="flex-1 bg-black/60 justify-end">
+          <View className="bg-white rounded-t-[40px] p-8 h-[80%] shadow-2xl">
+            <View className="flex-row items-center justify-between mb-8">
+              <Text className="text-3xl font-black text-gray-900 tracking-tighter">Edit Profile</Text>
+              <TouchableOpacity onPress={() => setIsEditing(false)} className="bg-gray-100 p-2 rounded-full">
+                <X size={24} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+              <View className="gap-6">
+                <View>
+                  <Text className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Full Name</Text>
+                  <TextInput
+                    className="bg-gray-50 p-5 rounded-3xl border border-gray-100 text-gray-900 font-semibold"
+                    value={editData.name}
+                    onChangeText={(text) => setEditData({ ...editData, name: text })}
+                    placeholder="Your Name"
+                  />
+                </View>
+
+                <View>
+                  <Text className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Contact Phone</Text>
+                  <TextInput
+                    className="bg-gray-50 p-5 rounded-3xl border border-gray-100 text-gray-900 font-semibold"
+                    value={editData.contact}
+                    onChangeText={(text) => setEditData({ ...editData, contact: text })}
+                    placeholder="+234..."
+                    keyboardType="phone-pad"
+                  />
+                </View>
+
+                <View>
+                  <Text className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Department</Text>
+                  <TextInput
+                    className="bg-gray-50 p-5 rounded-3xl border border-gray-100 text-gray-900 font-semibold"
+                    value={editData.department}
+                    onChangeText={(text) => setEditData({ ...editData, department: text })}
+                    placeholder="Choir, Youth, etc."
+                  />
+                </View>
+              </View>
+            </ScrollView>
+
+            <Button 
+              onPress={handleUpdateProfile} 
+              loading={editLoading}
+              size="lg" 
+              className="mt-6 mb-6 rounded-3xl"
+            >
+              <Check size={20} color="white" />
+              <Text className="ml-2">Save Changes</Text>
+            </Button>
+          </View>
+        </View>
+      </Modal>
 
       <BottomSheetModal
         ref={bottomSheetRef}

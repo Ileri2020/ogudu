@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { Audio } from 'expo-av';
+import { VideoPlayer } from './VideoPlayer';
 import Animated, {
   useAnimatedStyle,
   withSpring,
@@ -39,7 +40,7 @@ import {
   Trash2,
   Edit,
 } from 'lucide-react-native';
-import YoutubePlayer from 'react-native-youtube-iframe';
+
 import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import { Comments } from './Comments';
 import { useAppContext } from '@/context/AppContext';
@@ -77,6 +78,8 @@ export interface PostData {
 
 interface PostProps {
   post: PostData;
+  /** Passed down from PostsList intersection observer – pauses video when false */
+  isActive?: boolean;
   onLike?: (postId: string) => void;
   onComment?: (postId: string) => void;
   onShare?: (post: PostData) => void;
@@ -87,6 +90,7 @@ interface PostProps {
 
 export const Post = memo(function Post({
   post,
+  isActive = true,
   onLike,
   onShare,
   onUserPress,
@@ -284,6 +288,19 @@ export const Post = memo(function Post({
   const renderMedia = () => {
     if (!post.url) return null;
 
+    const isYouTube = /youtube\.com|youtu\.be/.test(post.url);
+
+    if (isYouTube || post.type === 'video') {
+      return (
+        <VideoPlayer
+          uri={post.url}
+          isActive={isActive}
+          autoPlay={false}
+          title={post.title}
+        />
+      );
+    }
+
     switch (post.type) {
       case 'image':
         return (
@@ -306,36 +323,6 @@ export const Post = memo(function Post({
             >
               <Heart size={80} color="white" fill="white" />
             </Animated.View>
-          </Pressable>
-        );
-
-      case 'video':
-        return (
-          <Pressable onPress={handleTap} className="w-full aspect-video bg-black relative">
-            <Video
-              ref={videoRef}
-              source={{ uri: post.url }}
-              className="w-full h-full"
-              resizeMode={ResizeMode.CONTAIN}
-              isLooping
-              shouldPlay={isPlaying}
-              isMuted={isMuted}
-              onLoadStart={() => setIsLoading(true)}
-              onLoad={() => setIsLoading(false)}
-              useNativeControls={variant === 'detail'}
-            />
-            {isLoading && (
-              <View className="absolute inset-0 justify-center items-center bg-black/50">
-                <ActivityIndicator size="large" color="#f59e0b" />
-              </View>
-            )}
-            {!isPlaying && variant === 'feed' && (
-              <View className="absolute inset-0 justify-center items-center bg-black/20">
-                <Pressable onPress={() => setIsPlaying(true)} className="w-16 h-16 rounded-full bg-black/50 justify-center items-center">
-                  <Play color="white" size={32} fill="white" />
-                </Pressable>
-              </View>
-            )}
           </Pressable>
         );
 

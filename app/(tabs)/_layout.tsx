@@ -35,6 +35,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="bible"
+        options={{
+          title: 'Bible',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="book.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="hymns"
+        options={{
+          title: 'Hymns',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="music.note.list" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="blog"
         options={{
           title: 'Updates',
@@ -42,17 +56,16 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="about"
-        options={{
-          title: 'About',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="info.circle.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="account"
         options={{
           title: 'Account',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="about"
+        options={{
+          href: null, // Hide from tab bar but keep route
         }}
       />
     </Tabs>

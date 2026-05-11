@@ -3,12 +3,11 @@ import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'rea
 const { Image, Dimensions } = require('react-native') as { Image: React.ComponentType<any>; Dimensions: { get: (d: string) => { width: number } } };
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Video, ResizeMode } from 'expo-av';
-import { WebView } from 'react-native-webview';
 import axios from 'axios';
 import { API_URL } from '@/constants/Config';
 import { MediaCarousel } from '@/components/MediaCarousel';
 import { MaterialIcons } from '@expo/vector-icons';
+import { VideoPlayer } from '@/components/shared';
 
 const { width } = Dimensions.get('window');
 
@@ -53,25 +52,18 @@ export default function PreachDetailScreen() {
   }
 
   const renderMedia = () => {
-    if (post.for === 'service' && post.url?.includes('youtube')) {
-      const videoId = post.url.split('v=')[1]?.split('&')[0];
+    // VideoPlayer handles both YouTube URLs and Cloudinary videos automatically,
+    // and shows a thumbnail before the user taps play.
+    if (post.type === 'video' || post.url?.includes('youtube') || post.url?.includes('youtu.be')) {
       return (
-        <View className="mt-4 rounded-3xl overflow-hidden shadow-sm" style={{ height: 240, width: width - 32 }}>
-          <WebView source={{ uri: `https://www.youtube.com/embed/${videoId}` }} allowsFullscreenVideo />
+        <View className="mt-4 rounded-3xl overflow-hidden shadow-sm">
+          <VideoPlayer
+            uri={post.url}
+            title={post.title}
+            autoPlay={false}
+            isActive={true}
+          />
         </View>
-      );
-    }
-
-    if (post.type === 'video') {
-      return (
-        <Video
-          source={{ uri: post.url }}
-          rate={1.0}
-          isMuted={false}
-          resizeMode={ResizeMode.CONTAIN}
-          useNativeControls
-          style={{ width: width - 32, height: 240, borderRadius: 24, marginTop: 16 }}
-        />
       );
     }
 
@@ -81,7 +73,10 @@ export default function PreachDetailScreen() {
           <MaterialIcons name="audiotrack" size={32} color="#F97316" />
           <View className="ml-4 flex-1">
             <Text className="text-lg font-bold text-foreground">Listen to Sermon</Text>
-            <Video source={{ uri: post.url }} useNativeControls style={{ width: '100%', height: 40, marginTop: 8 }} />
+            {/* Audio is still handled by basic Video component in original, 
+                but we can keep it for now or move to AudioPlayer if exists. 
+                Original code used expo-av Video for audio too. */}
+            <VideoPlayer uri={post.url} isActive={true} />
           </View>
         </View>
       );

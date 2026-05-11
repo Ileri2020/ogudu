@@ -6,11 +6,12 @@ import {
   ActivityIndicator,
   View,
   Text,
-  Dimensions,
+  ViewToken,
 } from 'react-native';
 import { Post, PostData } from './Post';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import { API_URL } from '@/constants/Config';
 
 interface PostsListProps {
   page: 'praisevideo' | 'worshipvideo' | 'post' | 'event' | 'project' | 'preaching' | 'service' | 'unverified';
@@ -42,8 +43,29 @@ export function PostsList({
   const [refreshing, setRefreshing] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
-  const fetchPosts = async ({ pageParam = 1 }) => {
-    const response = await axios.get('/api/dbhandler', {
+  // ── Intersection observer: track which video is currently visible ──────────
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
+
+  // A post is considered "viewable" when ≥60% of it is on screen for ≥200ms.
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 60,
+    minimumViewTime: 200,
+  });
+
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      // Find the first visible video post
+      const firstVideo = viewableItems.find(
+        (v) => v.isViewable && (v.item as PostData).type === 'video'
+      );
+      setActiveVideoId(firstVideo ? (firstVideo.item as PostData).id : null);
+    }
+  );
+
+  // ── Data fetching ─────────────────────────────────────────────────────────
+
+  const fetchPosts = async ({ pageParam = 1 }: { pageParam?: number }) => {
+    const response = await axios.get(`${API_URL}/api/dbhandler`, {
       params: {
         model: 'posts',
         page: pageParam,
@@ -55,7 +77,7 @@ export function PostsList({
 
     let posts: PostData[] = response.data;
 
-    // Client-side filtering for types
+    // Client-side type filtering
     if (page !== 'unverified') {
       posts = posts.filter((post) => {
         if (post.type === 'image' && postTypes.document) return true;
@@ -65,20 +87,14 @@ export function PostsList({
 
     // Sorting
     if (sortOrder === 'asc') {
-      posts.sort(
-        (a, b) =>
-          new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
-      );
+      posts.sort((a, b) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
     } else if (sortOrder === 'desc') {
-      posts.sort(
-        (a, b) =>
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-      );
+      posts.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     } else {
       posts.sort(() => Math.random() - 0.5);
     }
 
-    // Prioritize media if specified
+    // Prioritize a specific media item if requested
     if (media) {
       const index = posts.findIndex((p) => p.id === media);
       if (index > -1) {
@@ -107,7 +123,7 @@ export function PostsList({
     initialPageParam: 1,
   });
 
-  const allPosts = data?.pages.flatMap((page) => page.posts) ?? [];
+  const allPosts = data?.pages.flatMap((p) => p.posts) ?? [];
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -116,21 +132,23 @@ export function PostsList({
   }, [refetch]);
 
   const handleLoadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   const renderItem = useCallback(
     ({ item }: { item: PostData }) => (
       <Post
         post={item}
+        // Pass isActive so VideoPlayer pauses when scrolled out of view
+        isActive={item.type !== 'video' || item.id === activeVideoId}
         onMediaPress={onPostPress}
         onUserPress={onUserPress}
         variant="feed"
       />
     ),
-    [onPostPress, onUserPress]
+    [activeVideoId, onPostPress, onUserPress]
   );
 
   const renderFooter = () => {
@@ -171,13 +189,15 @@ export function PostsList({
       ListEmptyComponent={
         ListEmptyComponent || (
           <View className="flex-1 justify-center items-center py-20">
-            <Text className="text-gray-500 text-lg">
-              No posts available
-            </Text>
+            <Text className="text-gray-500 text-lg">No posts available</Text>
           </View>
         )
       }
-      removeClippedSubviews={true}
+      // ── Intersection observer ──────────────────────────────────────────────
+      onViewableItemsChanged={onViewableItemsChanged.current}
+      viewabilityConfig={viewabilityConfig.current}
+      // ─────────────────────────────────────────────────────────────────────
+      removeClippedSubviews
       maxToRenderPerBatch={10}
       windowSize={10}
       initialNumToRender={5}

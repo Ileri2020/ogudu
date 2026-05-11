@@ -3,12 +3,11 @@ import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'rea
 const { Image, Dimensions } = require('react-native') as { Image: React.ComponentType<any>; Dimensions: { get: (d: string) => { width: number } } };
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Video, ResizeMode } from 'expo-av';
-import { WebView } from 'react-native-webview';
 import axios from 'axios';
 import { API_URL } from '@/constants/Config';
 import { MediaCarousel } from '@/components/MediaCarousel';
 import { MaterialIcons } from '@expo/vector-icons';
+import { VideoPlayer } from '@/components/shared';
 
 const { width } = Dimensions.get('window');
 
@@ -37,18 +36,19 @@ export default function VideoDetailScreen() {
   if (!post) return <SafeAreaView className="flex-1 bg-background justify-center items-center px-6"><Text className="text-2xl font-bold text-foreground">Content not found</Text><TouchableOpacity onPress={() => router.back()} className="mt-6 rounded-full bg-secondary px-6 py-3"><Text className="text-foreground font-semibold">Go Back</Text></TouchableOpacity></SafeAreaView>;
 
   const renderMedia = () => {
-    if (post.url?.includes('youtube')) {
-      const videoId = post.url.split('v=')[1]?.split('&')[0];
+    // VideoPlayer handles both YouTube URLs and Cloudinary videos automatically,
+    // and shows a thumbnail before the user taps play.
+    if (post.type === 'video' || post.url?.includes('youtube') || post.url?.includes('youtu.be')) {
       return (
-        <View className="mt-4 rounded-3xl overflow-hidden shadow-sm" style={{ height: 240, width: width - 32 }}>
-          <WebView source={{ uri: `https://www.youtube.com/embed/${videoId}` }} allowsFullscreenVideo />
+        <View className="mt-4 rounded-3xl overflow-hidden shadow-sm">
+          <VideoPlayer
+            uri={post.url}
+            title={post.title}
+            autoPlay={false}
+            // Detail view is always active (no scroll observer needed here)
+            isActive={true}
+          />
         </View>
-      );
-    }
-
-    if (post.type === 'video') {
-      return (
-        <Video source={{ uri: post.url }} rate={1.0} isMuted={false} resizeMode={ResizeMode.CONTAIN} useNativeControls style={{ width: width - 32, height: 240, borderRadius: 24, marginTop: 16 }} />
       );
     }
 

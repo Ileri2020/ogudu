@@ -21,6 +21,8 @@ const MAPPING = {
   'newspaper.fill': 'article',
   'video.fill': 'videocam',
   'person.fill': 'person',
+  'book.fill': 'menu-book',
+  'music.note.list': 'library-music',
 } as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],
