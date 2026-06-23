@@ -1,128 +1,74 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
-const { Alert } = require('react-native') as { Alert: { alert: (t: string, m?: string, b?: any[]) => void } };
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialIcons } from '@expo/vector-icons';
+import React from 'react';
+import { View, Text } from 'react-native';
+import { Screen, Section, PageHeader } from '@/components/layout';
+import { ContactForm, Social, Footer } from '@/components/shared';
+
+const CONTACT_INFO = [
+  {
+    title: 'Location',
+    value: 'CCC Ogudu Expressway, Lagos, Nigeria',
+    icon: '📍',
+  },
+  {
+    title: 'Service Times',
+    value: 'Sunday: 10:00 AM\nWednesday: 7:00 PM',
+    icon: '⏰',
+  },
+  {
+    title: 'Email',
+    value: 'contact@cccogudu.org',
+    icon: '✉️',
+  },
+  {
+    title: 'Phone',
+    value: '+234 (123) 456-7890',
+    icon: '📱',
+  },
+];
 
 export default function ContactScreen() {
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = () => {
-    if (!formData.name || !formData.email || !formData.message) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      Alert.alert('Success', 'Your message has been sent successfully!');
-      setFormData({ name: '', email: '', message: '' });
-    }, 1500);
-  };
-
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
-      <ScrollView className="flex-1 px-6">
-        <View className="items-center mt-8 mb-10">
-          <Text className="text-4xl font-bold text-accent">Contact Us</Text>
-          <Text className="text-muted-foreground mt-2 text-center">
-            We'd love to hear from you. Send us a message or find us on social media.
-          </Text>
-        </View>
+    <Screen safe={true} scrollable={true}>
+      <PageHeader title="Get in" accentTitle="Touch" subtitle="We'd love to hear from you" />
 
-        {/* Contact Form */}
-        <View className="bg-secondary/30 p-6 rounded-3xl border border-border/50 shadow-sm shadow-black/5">
-          <Text className="text-2xl font-bold text-foreground mb-6">Let's talk</Text>
-          
-          <View className="space-y-4">
-            <View>
-              <Text className="text-sm font-bold text-foreground/70 mb-1 ml-1">Name</Text>
-              <TextInput
-                className="bg-secondary p-4 rounded-2xl border border-border/50 text-foreground"
-                placeholder="Your Name"
-                placeholderTextColor="#9CA3AF"
-                value={formData.name}
-                onChangeText={(text) => setFormData({ ...formData, name: text })}
-              />
+      <Section>
+        <Text className="text-gray-600 text-base leading-relaxed mb-8">
+          Have a question or prayer request? Fill out the form below and we'll get back to you as soon as possible.
+        </Text>
+        <ContactForm 
+          onSuccess={() => {}}
+          onError={(error) => console.error(error)}
+        />
+      </Section>
+
+      <Section title="Contact" accentTitle="Information">
+        {CONTACT_INFO.map((info, index) => (
+          <View key={index} className="mb-6 p-6 bg-gray-50 rounded-3xl border border-gray-100">
+            <View className="flex-row items-start">
+              <Text className="text-3xl mr-4">{info.icon}</Text>
+              <View className="flex-1">
+                <Text className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
+                  {info.title}
+                </Text>
+                <Text className="text-gray-900 font-semibold text-base leading-relaxed">
+                  {info.value}
+                </Text>
+              </View>
             </View>
-
-            <View>
-              <Text className="text-sm font-bold text-foreground/70 mb-1 ml-1">Email</Text>
-              <TextInput
-                className="bg-secondary p-4 rounded-2xl border border-border/50 text-foreground"
-                placeholder="example@gmail.com"
-                placeholderTextColor="#9CA3AF"
-                value={formData.email}
-                onChangeText={(text) => setFormData({ ...formData, email: text })}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
-
-            <View>
-              <Text className="text-sm font-bold text-foreground/70 mb-1 ml-1">Message</Text>
-              <TextInput
-                className="bg-secondary p-4 rounded-2xl border border-border/50 text-foreground h-32"
-                placeholder="How can we help?"
-                placeholderTextColor="#9CA3AF"
-                value={formData.message}
-                onChangeText={(text) => setFormData({ ...formData, message: text })}
-                multiline
-                textAlignVertical="top"
-              />
-            </View>
-
-            <TouchableOpacity onPress={handleSubmit} disabled={loading} className="mt-4">
-              <LinearGradient
-                colors={['#F97316', '#FB923C']}
-                className="py-4 rounded-2xl items-center"
-              >
-                {loading ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <Text className="text-white font-bold text-lg">Send Message</Text>
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
           </View>
+        ))}
+      </Section>
+
+      <Section title="Follow" accentTitle="Us" className="items-center">
+        <View className="mb-8">
+          <Text className="text-gray-600 text-center text-sm">Connect with our community on social media</Text>
         </View>
+        <Social size={28} />
+      </Section>
 
-        {/* Contact Info */}
-        <View className="mt-10 mb-10">
-          <View className="flex-row items-center mb-6">
-             <View className="w-12 h-12 bg-accent/10 rounded-full items-center justify-center">
-                <MaterialIcons name="location-on" size={24} color="#F97316" />
-             </View>
-             <View className="ml-4 flex-1">
-                <Text className="text-muted-foreground text-sm font-bold uppercase tracking-widest">Address</Text>
-                <Text className="text-foreground font-semibold">Ogudu Expressway, Lagos, Nigeria</Text>
-             </View>
-          </View>
+      <Footer />
 
-          <View className="flex-row items-center mb-6">
-             <View className="w-12 h-12 bg-accent/10 rounded-full items-center justify-center">
-                <MaterialIcons name="phone" size={24} color="#F97316" />
-             </View>
-             <View className="ml-4 flex-1">
-                <Text className="text-muted-foreground text-sm font-bold uppercase tracking-widest">Phone</Text>
-                <Text className="text-foreground font-semibold">+234 123 456 7890</Text>
-             </View>
-          </View>
-
-          <View className="flex-row items-center mb-10">
-             <View className="w-12 h-12 bg-accent/10 rounded-full items-center justify-center">
-                <MaterialIcons name="email" size={24} color="#F97316" />
-             </View>
-             <View className="ml-4 flex-1">
-                <Text className="text-muted-foreground text-sm font-bold uppercase tracking-widest">Email</Text>
-                <Text className="text-foreground font-semibold">contact@cccogudu.org</Text>
-             </View>
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+      <View className="h-24" />
+    </Screen>
   );
 }

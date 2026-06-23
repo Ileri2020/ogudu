@@ -59,9 +59,35 @@ function buildYouTubeEmbedHtml(videoId: string, autoplay: boolean): string {
 
 function getCloudinaryThumbnail(videoUrl: string): string | null {
   if (!videoUrl.includes('res.cloudinary.com')) return null;
-  return videoUrl
-    .replace('/video/upload/', '/video/upload/so_0,f_jpg/')
-    .replace(/\.(mp4|mov|webm|avi|mkv|ogg)$/i, '.jpg');
+  
+  try {
+    // Extract the video ID and transformation from Cloudinary URL
+    // Format: https://res.cloudinary.com/{cloud_name}/video/upload/{transformations}/{public_id}.{format}
+    // Convert to: https://res.cloudinary.com/{cloud_name}/image/upload/{transformations}/so_0/{public_id}.jpg
+    
+    let thumbnailUrl = videoUrl;
+    
+    // If URL has /video/upload/, replace with /image/upload/ and add frame grab parameter
+    if (thumbnailUrl.includes('/video/upload/')) {
+      thumbnailUrl = thumbnailUrl.replace('/video/upload/', '/image/upload/');
+      // Add frame grab parameter (so_0 = capture frame at 0 seconds)
+      if (!thumbnailUrl.includes('so_0')) {
+        const parts = thumbnailUrl.split('/image/upload/');
+        if (parts[1]) {
+          // Insert 'so_0/' after /image/upload/
+          thumbnailUrl = parts[0] + '/image/upload/so_0/' + parts[1];
+        }
+      }
+    }
+    
+    // Replace video extension with jpg
+    thumbnailUrl = thumbnailUrl.replace(/\.(mp4|mov|webm|avi|mkv|ogg|flv)$/i, '.jpg');
+    
+    return thumbnailUrl;
+  } catch (error) {
+    console.warn('Failed to generate Cloudinary thumbnail:', error);
+    return null;
+  }
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -98,6 +124,7 @@ export function VideoPlayer({
   const [showControls, setShowControls] = useState(true);
   const [showThumbnail, setShowThumbnail] = useState(true);
   const [youtubeActive, setYoutubeActive] = useState(false);
+  const [thumbnailError, setThumbnailError] = useState(false);
   const controlsOpacity = useSharedValue(1);
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -225,11 +252,19 @@ export function VideoPlayer({
               setYoutubeActive(true);
             }}
           >
-            {thumbnailUri ? (
-              <Image source={{ uri: thumbnailUri }} className="w-full h-full" resizeMode="cover" />
+            {thumbnailUri && !thumbnailError ? (
+              <Image 
+                source={{ uri: thumbnailUri }} 
+                className="w-full h-full" 
+                resizeMode="cover"
+                onError={() => {
+                  console.warn('Failed to load YouTube thumbnail:', thumbnailUri);
+                  setThumbnailError(true);
+                }}
+              />
             ) : (
-              <View className="w-full h-full bg-gray-900 justify-center items-center">
-                <Text className="text-4xl opacity-40">🎬</Text>
+              <View className="w-full h-full bg-gradient-to-b from-gray-900 to-black justify-center items-center">
+                <Text className="text-6xl opacity-30">▶</Text>
               </View>
             )}
             {/* YouTube-style red play button */}
@@ -288,15 +323,28 @@ export function VideoPlayer({
       {/* Thumbnail */}
       {showThumbnail && (
         <Pressable className="absolute inset-0" onPress={togglePlayPause}>
-          {thumbnailUri ? (
-            <Image source={{ uri: thumbnailUri }} className="w-full h-full" resizeMode="cover" />
+          {thumbnailUri && !thumbnailError ? (
+            <Image 
+              source={{ uri: thumbnailUri }} 
+              className="w-full h-full" 
+              resizeMode="cover"
+              onError={() => {
+                console.warn('Failed to load thumbnail:', thumbnailUri);
+                setThumbnailError(true);
+              }}
+            />
           ) : (
-            <View className="w-full h-full bg-gray-900 justify-center items-center">
-              <Text className="text-4xl opacity-30">🎬</Text>
+            <View className="w-full h-full bg-gradient-to-b from-gray-900 to-black justify-center items-center">
+              <View className="mb-4">
+                <Text className="text-6xl opacity-30">🎬</Text>
+              </View>
+              <Text className="text-white text-xs opacity-50 text-center px-4">
+                {title || 'Video'}
+              </Text>
             </View>
           )}
           <View className="absolute inset-0 justify-center items-center">
-            <View className="w-16 h-16 rounded-full bg-black/50 justify-center items-center">
+            <View className="w-16 h-16 rounded-full bg-black/50 justify-center items-center border-2 border-white/20">
               <Play color="white" size={32} fill="white" />
             </View>
           </View>

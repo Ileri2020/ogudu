@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { PostsList, MediaUploader } from '@/components/shared';
+import { PostsList, PostButton } from '@/components/shared';
 import { useAppContext } from '@/context/AppContext';
 import { Plus } from 'lucide-react-native';
 import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
@@ -82,10 +82,14 @@ export default function BlogScreen() {
         )}
       >
         <BottomSheetView className="flex-1">
-          <MediaUploader onSuccess={() => {
-            bottomSheetModalRef.current?.dismiss();
-            // PostsList will automatically refetch because its queryKey includes activeTab
-          }} />
+          <PostButton 
+            visible={true}
+            onClose={() => bottomSheetModalRef.current?.dismiss()}
+            onPostCreated={() => {
+              bottomSheetModalRef.current?.dismiss();
+              // PostsList will automatically refetch
+            }}
+          />
         </BottomSheetView>
       </BottomSheetModal>
     </SafeAreaView>
