@@ -55,6 +55,7 @@ export const Login = ({ onSuccess, onSwitchToSignup }: LoginProps) => {
       const response = await axios.post(`${API_URL}/api/auth/login`, formData);
       const userData = response.data;
       setUser({
+        name: userData.name || '',
         username: userData.username,
         id: userData.id,
         email: userData.email,

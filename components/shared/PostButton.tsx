@@ -61,7 +61,7 @@ export const PostButton = ({
           ? ImagePicker.MediaTypeOptions.Images
           : type === 'video'
             ? ImagePicker.MediaTypeOptions.Videos
-            : ImagePicker.MediaTypeOptions.Audio;
+            : ImagePicker.MediaTypeOptions.Images; // audio handled via DocumentPicker below
 
       if (type === 'audio') {
         result = await DocumentPicker.getDocumentAsync({

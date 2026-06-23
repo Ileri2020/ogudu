@@ -75,6 +75,7 @@ export const Signup = ({ onSuccess, onSwitchToLogin }: SignupProps) => {
       });
       const userData = response.data;
       setUser({
+        name: userData.name || '',
         username: userData.username,
         id: userData.id,
         email: userData.email,

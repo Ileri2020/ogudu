@@ -18,9 +18,11 @@ interface PostData {
   url: string;
   type: 'image' | 'video' | 'audio';
   for: string;
+  createdAt: string;
   updatedAt: string;
   isVerified?: boolean;
   user?: {
+    id: string;
     username: string;
     avatarUrl: string;
   };
@@ -85,13 +87,7 @@ export const Similar = ({
       <FlatList
         data={posts}
         renderItem={({ item }) => (
-          <Post
-            post={item}
-            onUpdate={() => {
-              onPostUpdate?.();
-              fetchSimilarPosts();
-            }}
-          />
+          <Post post={item} />
         )}
         keyExtractor={(item) => item.id}
         scrollEnabled={false}

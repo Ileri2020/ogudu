@@ -58,6 +58,7 @@ export const EditUser = ({ onSuccess }: EditUserProps) => {
       const response = await axios.put(`${API_URL}/api/auth/user/${user?.id}`, formData);
       const updatedUser = response.data;
       setUser({
+        name: updatedUser.name || '',
         username: updatedUser.username,
         id: updatedUser.id,
         email: updatedUser.email,

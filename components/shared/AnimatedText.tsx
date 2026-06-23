@@ -62,7 +62,7 @@ export const AnimatedText = ({ text, className, type = 'fade' }: AnimatedTextPro
         return {
           opacity: opacity.value,
           transform: [
-            { rotateY: rotateZ.value },
+            { rotateY: `${rotateZ.value}deg` },
             { scale: scale.value }
           ],
         };
@@ -96,7 +96,7 @@ export const AnimatedText = ({ text, className, type = 'fade' }: AnimatedTextPro
   });
 
   return (
-    <Animated.View style={animatedStyle}>
+    <Animated.View style={animatedStyle as any}>
       <Text className={className}>{text}</Text>
     </Animated.View>
   );

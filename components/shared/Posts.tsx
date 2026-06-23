@@ -17,9 +17,11 @@ interface PostData {
   url: string;
   type: 'image' | 'video' | 'audio';
   for: string;
+  createdAt: string;
   updatedAt: string;
   isVerified?: boolean;
   user?: {
+    id: string;
     username: string;
     avatarUrl: string;
   };
@@ -80,7 +82,7 @@ export const Posts = ({ category, limit = 10, onPostUpdate }: PostsProps) => {
     <FlatList
       data={posts}
       renderItem={({ item }) => (
-        <Post post={item} onUpdate={() => { onPostUpdate?.(); fetchPosts(); }} />
+        <Post post={item} />
       )}
       keyExtractor={(item) => item.id}
       scrollEnabled={false}
