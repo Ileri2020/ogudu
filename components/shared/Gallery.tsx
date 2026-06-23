@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Image, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import axios from 'axios';
-import { useDispatch } from 'react-redux';
 import { API_URL } from '@/constants/Config';
 
 interface GalleryItem {
@@ -24,7 +23,6 @@ export const Gallery = ({ limit = 10, onAddToCart }: GalleryProps) => {
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const dispatch = useDispatch();
 
   useEffect(() => {
     fetchGalleryItems();
